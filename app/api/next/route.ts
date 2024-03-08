@@ -1,9 +1,8 @@
 import { FrameRequest, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
 import { NEXT_PUBLIC_URL } from '../../config';
-import { getFids, validateCollabUserInput } from '../../utils/utils';
-
-var fids: string[] = []
+import { getFids, validateCollabUserInput } from '../../utils/utils'
+import { redisClient } from '../../utils/redis';
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
   const body: FrameRequest = await req.json();
@@ -11,7 +10,11 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
 
   if(validateCollabUserInput(inputText)){
     getFids(inputText)
-            .then((frameFids) => fids = frameFids)
+            .then(async(frameFids) => {   
+              await redisClient.set('fids', frameFids.toString())
+              //cache.put('fids', frameFids)              
+              console.log(await redisClient.get('fids'))
+            })
             .catch((error) => console.error(error))
     return new NextResponse(
       getFrameHtmlResponse({
