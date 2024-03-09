@@ -29,12 +29,9 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
             data: JSON.stringify(data)
         }
     
-        onchainAttestation(attestDataObj)
-            .then(async(txnId) => {                    
-                await setData(fromFid.toString(), cachedDataJson.toFids, txnId!)
-                console.log(await getData(fromFid.toString()))
-            })
-            .catch((e) => console.error(e))
+        let txnId = await onchainAttestation(attestDataObj)
+        await setData(fromFid.toString(), cachedDataJson.toFids, txnId!)
+        console.log(await getData(fromFid.toString()))
         
         return new NextResponse(
             getFrameHtmlResponse({
