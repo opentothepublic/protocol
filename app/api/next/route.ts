@@ -8,15 +8,13 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
   const body: FrameRequest = await req.json();
   let inputText: string = body.untrustedData.inputText
   let fromFid: string = (body.untrustedData.fid).toString()
-
+  console.log('In next!')
   if(validateCollabUserInput(inputText)){
     await inCache(fromFid) ? await delCache(fromFid) : await createCacheObj(fromFid)
-    getFids(inputText)
-      .then(async(frameFids) => {   
-        await setData(fromFid, frameFids.toString(), '')
-        console.log(await getData(fromFid))              
-      })
-      .catch((error) => console.error(error))
+    let fids = await getFids(inputText)      
+    await setData(fromFid, fids.toString(), '')
+    console.log(await getData(fromFid))              
+        
     return new NextResponse(
       getFrameHtmlResponse({
         buttons: [
