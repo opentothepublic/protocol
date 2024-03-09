@@ -13,7 +13,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         let project: string[] = getTaggedData(inputText)
         let fromFid = body.untrustedData.fid.toString()
         let cachedData = JSON.parse(await getData(fromFid))
-        console.log(cachedData)       
+        //console.log(cachedData)       
 
         let data: any = {
             toFID: cachedData.toFids,
@@ -29,7 +29,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     
         let txnId = await onchainAttestation(attestDataObj)
         await setData(fromFid, cachedData.toFids, txnId!)
-        console.log(await getData(fromFid))
+        //console.log(await getData(fromFid))
         
         return new NextResponse(
             getFrameHtmlResponse({
