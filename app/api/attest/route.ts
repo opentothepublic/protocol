@@ -11,28 +11,24 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         let inputText: string = body.untrustedData.inputText        
         let project: string[] = getTaggedData(inputText)
         let fromFid = body.untrustedData.fid
-        let cachedData: string = await getData(fromFid.toString())
-        console.log(cachedData) 
-        let cachedDataJson = await JSON.parse(cachedData)
-        console.log(cachedDataJson)
-        let toFids = cachedDataJson.toFids
-        console.log(toFids)
+        let cachedData = JSON.parse(await getData(fromFid.toString()))
+        console.log(cachedData)       
+
         let data: any = {}
-        //data.toFID = cachedData.toFids
-        data.toFID = toFids
+        data.toFID = cachedData.toFids        
         data.message = inputText
-        data.project = project
-        
+        data.project = project        
         console.log(data)
+
         let attestDataObj: AttestData = {
             fromFID: (body.untrustedData.fid).toString(),
             data: JSON.stringify(data)
         }
     
         let txnId = await onchainAttestation(attestDataObj)
-        await setData(fromFid.toString(), cachedDataJson.toFids, txnId!)
+        await setData(fromFid.toString(), cachedData.toFids, txnId!)
         console.log(await getData(fromFid.toString()))
-        
+
         return new NextResponse(
             getFrameHtmlResponse({
                 buttons: [

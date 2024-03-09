@@ -8,7 +8,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
   const body: FrameRequest = await req.json();
   let inputText: string = body.untrustedData.inputText
   let fromFid: string = (body.untrustedData.fid).toString()
-  console.log('In next!')
+  
   if(validateCollabUserInput(inputText)){
     await inCache(fromFid) ? await delCache(fromFid) : await createCacheObj(fromFid)
     let fids = await getFids(inputText)      
