@@ -5,9 +5,10 @@ import { getData } from '../../utils/redis';
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json();
-    let fromFid = body.untrustedData.fid
-    let cachedData = JSON.parse(await getData(fromFid.toString()))
+    let fromFid = body.untrustedData.fid.toString()
+    let cachedData = JSON.parse(await getData(fromFid))
     console.log(cachedData)
+    
     return new NextResponse(
         getFrameHtmlResponse({
             buttons: [

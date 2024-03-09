@@ -7,11 +7,13 @@ import { createCacheObj, delCache, getData, inCache, setData } from '../../utils
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
   const body: FrameRequest = await req.json();
   let inputText: string = body.untrustedData.inputText
-  let fromFid: string = (body.untrustedData.fid).toString()
+  let fromFid: string = body.untrustedData.fid.toString()
   
   if(validateCollabUserInput(inputText)){
+
+    const fidsPromise = getFids(inputText)
     await inCache(fromFid) ? await delCache(fromFid) : await createCacheObj(fromFid)
-    let fids = await getFids(inputText)      
+    const fids = await fidsPromise      
     await setData(fromFid, fids.toString(), '')
     console.log(await getData(fromFid))              
         
