@@ -13,11 +13,13 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         let fromFid = body.untrustedData.fid
         let cachedData: string = await getData(fromFid.toString())
         console.log(cachedData) 
-        let cachedDataJson = JSON.parse(cachedData)
+        let cachedDataJson = await JSON.parse(cachedData)
         console.log(cachedDataJson)
+        let toFids = cachedDataJson.toFids
+        console.log(toFids)
         let data: any = {}
         //data.toFID = cachedData.toFids
-        data.toFID = cachedDataJson.toFids
+        data.toFID = toFids
         data.message = inputText
         data.project = project
         
