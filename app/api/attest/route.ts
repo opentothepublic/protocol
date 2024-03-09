@@ -27,10 +27,18 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
             data: JSON.stringify(data)
         }
     
-        let txnId = await onchainAttestation(attestDataObj)
-        await setData(fromFid.toString(), cachedData.toFids, txnId!)
-        console.log(await getData(fromFid))
+        let txnIdPromise = onchainAttestation(attestDataObj)
 
+        txnIdPromise.then(txnId => {
+            setData(fromFid, cachedData.toFids, txnId!).then(async() => {                
+                console.log(await getData(fromFid))
+            }).catch(error => {
+                console.error('Error setting data:', error);
+            });
+        }).catch(error => {
+            console.error('Error in onchainAttestation:', error);
+        })
+        
         return new NextResponse(
             getFrameHtmlResponse({
                 buttons: [
