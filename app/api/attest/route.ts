@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { NEXT_PUBLIC_URL } from '../../config';
 import { getTaggedData, onchainAttestation } from '../../utils/utils';
 import { AttestData } from '../../utils/interface';
-import { getData, redisClient, setData } from '../../utils/redis';
+import { getData, setData } from '../../utils/redis';
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json();
@@ -11,10 +11,13 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         let inputText: string = body.untrustedData.inputText        
         let project: string[] = getTaggedData(inputText)
         let fromFid = body.untrustedData.fid
-        let cachedData = JSON.parse(await getData(fromFid.toString()))
+        let cachedData: string = await getData(fromFid.toString())
         console.log(cachedData) 
+        let cachedDataJson = JSON.parse(cachedData)
+        console.log(cachedDataJson)
         let data: any = {}
-        data.toFID = cachedData.toFids
+        //data.toFID = cachedData.toFids
+        data.toFID = cachedDataJson.toFids
         data.message = inputText
         data.project = project
         
@@ -26,7 +29,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     
         onchainAttestation(attestDataObj)
             .then(async(txnId) => {                    
-                await setData(fromFid.toString(), cachedData.toFids, txnId!)
+                await setData(fromFid.toString(), cachedDataJson.toFids, txnId!)
                 console.log(await getData(fromFid.toString()))
             })
             .catch((e) => console.error(e))
