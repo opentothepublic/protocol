@@ -8,26 +8,28 @@ import { getData, setData } from '../../utils/redis';
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json();
     if (body.untrustedData.buttonIndex !== 1) {
+        
         let inputText: string = body.untrustedData.inputText        
         let project: string[] = getTaggedData(inputText)
-        let fromFid = body.untrustedData.fid
-        let cachedData = JSON.parse(await getData(fromFid.toString()))
+        let fromFid = body.untrustedData.fid.toString()
+        let cachedData = JSON.parse(await getData(fromFid))
         console.log(cachedData)       
 
-        let data: any = {}
-        data.toFID = cachedData.toFids        
-        data.message = inputText
-        data.project = project        
+        let data: any = {
+            toFID: cachedData.toFids,
+            message: inputText,
+            project: project        
+        }        
         console.log(data)
 
         let attestDataObj: AttestData = {
-            fromFID: (body.untrustedData.fid).toString(),
+            fromFID: fromFid,
             data: JSON.stringify(data)
         }
     
         let txnId = await onchainAttestation(attestDataObj)
         await setData(fromFid.toString(), cachedData.toFids, txnId!)
-        console.log(await getData(fromFid.toString()))
+        console.log(await getData(fromFid))
 
         return new NextResponse(
             getFrameHtmlResponse({
