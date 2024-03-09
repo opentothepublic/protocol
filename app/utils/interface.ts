@@ -4,10 +4,8 @@ interface AttestData {
 }
 
 interface FrameCache {
-    fromFid: {
-        toFids: string,
-        attestTxn: string
-    }
+    toFids: string,
+    attestTxn: string    
 }
 
 export  type {AttestData, FrameCache}

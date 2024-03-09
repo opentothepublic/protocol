@@ -1,7 +1,7 @@
 import { FrameRequest, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
 import { NEXT_PUBLIC_URL } from '../../config';
-import { getData, redisClient } from '../../utils/redis';
+import { getData } from '../../utils/redis';
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json();

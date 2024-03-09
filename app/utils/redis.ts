@@ -23,7 +23,7 @@ const createCacheObj = async (fromFid: string) => {
 }
 
 const setData = async (fromFid: string, toFids: string, attestTxn: string) => {
-    let cacheObj = {
+    let cacheObj: FrameCache = {
         toFids: toFids,
         attestTxn: attestTxn
     }
@@ -34,4 +34,4 @@ const getData = async (fromFid: string): Promise<string> => {
     return (await redisClient.get(fromFid))!
 }
 
-export {redisClient, inCache, delCache, createCacheObj, setData, getData}
+export { inCache, delCache, createCacheObj, setData, getData}
