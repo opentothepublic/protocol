@@ -3,16 +3,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { NEXT_PUBLIC_URL } from '../../config';
 import { getTaggedData, onchainAttestation } from '../../utils/utils';
 import { AttestData } from '../../utils/interface';
-import { redisClient } from '../../utils/redis';
+import { getData, redisClient, setData } from '../../utils/redis';
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json();
     if (body.untrustedData.buttonIndex !== 1) {
         let inputText: string = body.untrustedData.inputText        
         let project: string[] = getTaggedData(inputText)
-        
+        let fromFid = body.untrustedData.fid
+        let cachedData = JSON.parse(await getData(fromFid.toString()))
+        console.log(cachedData) 
         let data: any = {}
-        data.toFID = await redisClient.get('fids')
+        data.toFID = cachedData.toFids
         data.message = inputText
         data.project = project
         
@@ -23,9 +25,9 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         }
     
         onchainAttestation(attestDataObj)
-            .then(async(txnId) => {    
-                await redisClient.set('attestTxn', txnId as string)
-                console.log(await redisClient.get('attestTxn'))
+            .then(async(txnId) => {                    
+                await setData(fromFid.toString(), cachedData.toFids, txnId!)
+                console.log(await getData(fromFid.toString()))
             })
             .catch((e) => console.error(e))
         

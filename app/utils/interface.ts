@@ -2,4 +2,12 @@ interface AttestData {
     fromFID: string,
     data: string
 }
-export  type {AttestData}
+
+interface FrameCache {
+    fromFid: {
+        toFids: string,
+        attestTxn: string
+    }
+}
+
+export  type {AttestData, FrameCache}

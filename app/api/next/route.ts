@@ -2,20 +2,21 @@ import { FrameRequest, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
 import { NEXT_PUBLIC_URL } from '../../config';
 import { getFids, validateCollabUserInput } from '../../utils/utils'
-import { redisClient } from '../../utils/redis';
+import { createCacheObj, delCache, getData, inCache, setData } from '../../utils/redis';
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
   const body: FrameRequest = await req.json();
   let inputText: string = body.untrustedData.inputText
+  let fromFid: string = (body.untrustedData.fid).toString()
 
   if(validateCollabUserInput(inputText)){
+    await inCache(fromFid) ? await delCache(fromFid) : await createCacheObj(fromFid)
     getFids(inputText)
-            .then(async(frameFids) => {   
-              await redisClient.set('fids', frameFids.toString())
-              //cache.put('fids', frameFids)              
-              console.log(await redisClient.get('fids'))
-            })
-            .catch((error) => console.error(error))
+      .then(async(frameFids) => {   
+        await setData(fromFid, frameFids.toString(), '')
+        console.log(await getData(fromFid))              
+      })
+      .catch((error) => console.error(error))
     return new NextResponse(
       getFrameHtmlResponse({
         buttons: [
