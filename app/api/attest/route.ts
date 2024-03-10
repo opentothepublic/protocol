@@ -1,9 +1,9 @@
 import { FrameRequest, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
 import { NEXT_PUBLIC_URL } from '../../config';
-import { getTaggedData, onchainAttestation } from '../../utils/utils';
-import { AttestData } from '../../utils/interface';
-import { getData, setData } from '../../utils/redis';
+import { getTaggedData } from '../../utils/utils';
+import { getData } from '../../utils/redis';
+import axios from 'axios'
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json();
@@ -21,15 +21,15 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
             project: project        
         }        
         console.log(data)
-
-        let attestDataObj: AttestData = {
-            fromFID: fromFid,
-            data: JSON.stringify(data)
-        }
-    
-        let txnId = await onchainAttestation(attestDataObj)
-        await setData(fromFid, cachedData.toFids, txnId!)
-        //console.log(await getData(fromFid))
+        
+        axios.post(`${process.env.GCLOUD_FUNCTION}`, {
+                fromFID: fromFid,               
+                data: data
+            }, {
+            headers: {
+               'Content-Type': 'application/json'
+            }
+        })
         
         return new NextResponse(
             getFrameHtmlResponse({
