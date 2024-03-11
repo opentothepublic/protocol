@@ -1,9 +1,10 @@
-import { FrameRequest, getFrameMessage } from '@coinbase/onchainkit/frame';
+import { FrameRequest } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
 import { encodeFunctionData, parseEther } from 'viem';
 import { base } from 'viem/chains';
 import type { FrameTransactionResponse } from '@coinbase/onchainkit/frame';
 import easAbi from '../../contracts/easAbi';
+import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 
 async function getResponse(req: NextRequest): Promise<NextResponse | Response> {
     const body: FrameRequest = await req.json();
@@ -13,34 +14,46 @@ async function getResponse(req: NextRequest): Promise<NextResponse | Response> {
     dataObj.toFID = '2095'
     dataObj.message = 'Building @OTTP Frame'
     dataObj.project = '@OTTP'
+    const fromFid = body.untrustedData.fid.toString()
 
-    const data = encodeFunctionData({
+    const schemaEncoder = new SchemaEncoder("string fromFID,string data")
+        const encodedData = schemaEncoder.encodeData([
+	        { name: "fromFID", value: fromFid, type: "string" },
+	        { name: "data", value: JSON.stringify(dataObj), type: "string" }	        
+        ])
+    console.log(encodedData)
+
+    const functionData = {
+      schema: schemaUID,
+      data: {
+        recipient: "0x0000000000000000000000000000000000000000",
+        expirationTime: 0,
+        revocable: true, // Ensure this matches your contract's requirements
+        refUID: "0x0000000000000000000000000000000000000000000000000000000000000000", // Assuming you need to set this as well
+        data: encodedData, // Ensure this is properly encoded as bytes
+        value: 0, // Include if your contract's attest function uses it in logic  
+      }
+    }
+    //console.log(functionData)
+    
+      const data = encodeFunctionData({
         abi: easAbi,
         functionName: 'attest',
-        args: [{
-            schema: schemaUID,
-            data: {
-                recipient: "0x0000000000000000000000000000000000000000",            
-                revocable: true, // Be aware that if your schema is not revocable, this MUST be false
-                data: [
-                    { name: "fromFID", value: (body.untrustedData.fid).toString(), type: "string" },
-                    { name: "data", value: dataObj, type: "string" }	        
-                ],
-            },
-        }],
-    });
-
-  const txData: FrameTransactionResponse = {
-    chainId: `eip155:${base.id}`, // Remember Base Sepolia might not work on Warpcast yet
-    method: 'eth_sendTransaction',
-    params: {
-      abi: [],
-      data,
-      to: easContractAddress,
-      value: parseEther('0.00004').toString(), // 0.00004 ETH
-    },
-  };
-  return NextResponse.json(txData);
+        args: [functionData],
+      })
+      //console.log("Data : ", data)
+      const txData: FrameTransactionResponse = {
+        chainId: `eip155:${base.id}`, // Remember Base Sepolia might not work on Warpcast yet
+        method: 'eth_sendTransaction',
+        params: {
+          abi: [],
+          data,
+          to: easContractAddress,
+          value: parseEther('0.00004').toString(), // 0.00004 ETH
+        },
+      }
+      //console.log("txData : ", txData)
+      return NextResponse.json(txData);
 }
 
 export async function POST(req: NextRequest): Promise<Response> {

@@ -5,7 +5,6 @@ import { NEXT_PUBLIC_URL } from '../../config';
 async function getResponse(req: NextRequest): Promise<NextResponse> {
   const body: FrameRequest = await req.json();
   
-
   return new NextResponse(
     getFrameHtmlResponse({
       buttons: [

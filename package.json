@@ -15,6 +15,7 @@
     "@coinbase/onchainkit": "^0.10.1",
     "@ethereum-attestation-service/eas-sdk": "^1.5.0",
     "axios": "^1.6.7",
+    "ethers": "^6.11.1",
     "ioredis": "^5.3.2",
     "memory-cache": "^0.2.0",
     "next": "13.5.6",
@@ -22,8 +23,7 @@
     "react-dom": "^18.2.0",
     "viem": "^2.7.1"
   },
-  "devDependencies": {
-    "@types/memory-cache": "^0.2.5",
+  "devDependencies": {        
     "@types/node": "^20.11.8",
     "@types/react": "18.2.48",
     "prettier": "^3.2.4",
