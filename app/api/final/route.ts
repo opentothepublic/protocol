@@ -1,11 +1,14 @@
-import { getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
+import { FrameRequest, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
 import { NEXT_PUBLIC_URL } from '../../config';
-import { redisClient } from '../../utils/redis';
+import { getData } from '../../utils/redis';
 
-const getResponse = async (): Promise<NextResponse> => {
-    let attestTxn = await redisClient.get('attestTxn')    
-    console.log(attestTxn)
+const getResponse = async (req: NextRequest): Promise<NextResponse> => {
+    const body: FrameRequest = await req.json();
+    let fromFid = body.untrustedData.fid.toString()
+    let cachedData = JSON.parse(await getData(fromFid))
+    console.log(cachedData)
+    
     return new NextResponse(
         getFrameHtmlResponse({
             buttons: [
@@ -17,7 +20,7 @@ const getResponse = async (): Promise<NextResponse> => {
                 {
                     "label": "View",
                     "action": "link",
-                    "target": `https://base-sepolia.easscan.org/attestation/view/${attestTxn}`
+                    "target": `https://base-sepolia.easscan.org/attestation/view/${cachedData.attestTxn}`
                 },
                 {
                     "label": "Restart",
@@ -33,8 +36,8 @@ const getResponse = async (): Promise<NextResponse> => {
     )
 }
 
-export const POST = async(): Promise<NextResponse> => {
-  return getResponse();
+export const POST = async(req: NextRequest): Promise<NextResponse> => {
+  return getResponse(req);
 }
 
 export const dynamic = 'force-dynamic';

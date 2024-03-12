@@ -3,31 +3,33 @@ import { NextRequest, NextResponse } from 'next/server';
 import { NEXT_PUBLIC_URL } from '../../config';
 import { getTaggedData, onchainAttestation } from '../../utils/utils';
 import { AttestData } from '../../utils/interface';
-import { redisClient } from '../../utils/redis';
+import { getData, setData } from '../../utils/redis';
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json();
     if (body.untrustedData.buttonIndex !== 1) {
+        
         let inputText: string = body.untrustedData.inputText        
         let project: string[] = getTaggedData(inputText)
-        
-        let data: any = {}
-        data.toFID = await redisClient.get('fids')
-        data.message = inputText
-        data.project = project
-        
+        let fromFid = body.untrustedData.fid.toString()
+        let cachedData = JSON.parse(await getData(fromFid))
+        //console.log(cachedData)       
+
+        let data: any = {
+            toFID: cachedData.toFids,
+            message: inputText,
+            project: project        
+        }        
         console.log(data)
+
         let attestDataObj: AttestData = {
-            fromFID: (body.untrustedData.fid).toString(),
+            fromFID: fromFid,
             data: JSON.stringify(data)
         }
     
-        onchainAttestation(attestDataObj)
-            .then(async(txnId) => {    
-                await redisClient.set('attestTxn', txnId as string)
-                console.log(await redisClient.get('attestTxn'))
-            })
-            .catch((e) => console.error(e))
+        let txnId = await onchainAttestation(attestDataObj)
+        await setData(fromFid, cachedData.toFids, txnId!)
+        //console.log(await getData(fromFid))
         
         return new NextResponse(
             getFrameHtmlResponse({
