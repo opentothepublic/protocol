@@ -1,9 +1,13 @@
-import { FrameRequest, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
+import { FrameRequest, FrameTransactionResponse, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
 import { NEXT_PUBLIC_URL } from '../../config';
 import { getTaggedData, onchainAttestation } from '../../utils/utils';
 import { AttestData } from '../../utils/interface';
 import { getData, setData } from '../../utils/redis';
+import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
+import { encodeFunctionData, parseEther } from 'viem';
+import easAbi from '../../contracts/easAbi';
+import { base } from 'viem/chains';
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json();
@@ -13,8 +17,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         let project: string[] = getTaggedData(inputText)
         let fromFid = body.untrustedData.fid.toString()
         let cachedData = JSON.parse(await getData(fromFid))
-        //console.log(cachedData)       
-
+        
         let data: any = {
             toFID: cachedData.toFids,
             message: inputText,
@@ -22,16 +25,48 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         }        
         console.log(data)
 
-        let attestDataObj: AttestData = {
-            fromFID: fromFid,
-            data: JSON.stringify(data)
+        const schemaEncoder = new SchemaEncoder("string fromFID,string data")
+        const encodedData = schemaEncoder.encodeData([
+	        { name: "fromFID", value: fromFid, type: "string" },
+	        { name: "data", value: JSON.stringify(data), type: "string" }	        
+        ])
+        console.log(encodedData)
+
+        const functionData = {
+            schema: process.env.SCHEMAUID as string,
+            data: {
+              recipient: "0x0000000000000000000000000000000000000000",
+              expirationTime: 0,
+              revocable: true,
+              refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
+              data: encodedData,
+              value: 0,
+            }
         }
-    
-        let txnId = await onchainAttestation(attestDataObj)
-        await setData(fromFid, cachedData.toFids, txnId!)
-        //console.log(await getData(fromFid))
         
-        return new NextResponse(
+        const transactiondata = encodeFunctionData({
+            abi: easAbi,
+            functionName: 'attest',
+            args: [functionData],
+        })
+        //console.log("Data : ", data)
+        const txData: FrameTransactionResponse = {
+            chainId: `eip155:${base.id}`, // Remember Base Sepolia might not work on Warpcast yet
+            method: 'eth_sendTransaction',
+            params: {
+                abi: [],
+                data: transactiondata,
+                to: process.env.EASCONTRACTADDRESS  as `0x{string}`,
+                value: parseEther('0.00004').toString(), // 0.00004 ETH
+            },
+        }
+        console.log("txData : ", txData)
+    
+        //let txnId = await onchainAttestation(attestDataObj)
+        //await setData(fromFid, cachedData.toFids, txnId!)
+        //console.log(await getData(fromFid))
+        return NextResponse.json(txData);
+        /*return new NextResponse(
             getFrameHtmlResponse({
                 buttons: [
                     {
@@ -45,7 +80,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
                 ogTitle: "OTTP: Shoutout!",    
                 postUrl: `${NEXT_PUBLIC_URL}/api/final`,            
             })
-        )
+        )*/
     } else {
         return new NextResponse(
             getFrameHtmlResponse({

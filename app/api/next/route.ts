@@ -20,19 +20,21 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     return new NextResponse(
       getFrameHtmlResponse({
         buttons: [
-            {
-                "label": "Back",
-                "action": 'post',                
-            },
-            {
-                "label": "Attest",
-                "action": 'post',                
-            }
+          {
+            "label": "Back",
+            "action": 'post',                
+          },
+          {
+            "label": "Attest",
+            "action": 'tx',     
+            "target": `${NEXT_PUBLIC_URL}/api/attest`,      
+            "postUrl": `${NEXT_PUBLIC_URL}/api/final`,           
+          }
         ],
         image: {
           src: `${NEXT_PUBLIC_URL}/ottp-frame-1b.png`,
         },
-        input: {text: 'What did you create @fcg'},                
+        input: {text: 'What did you create @fwg'},                
         postUrl: `${NEXT_PUBLIC_URL}/api/attest`,          
       })
     )

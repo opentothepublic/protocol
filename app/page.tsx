@@ -8,12 +8,6 @@ const frameMetadata = getFrameMetadata({
       "label": "Next",
       "action": "post",                
     },
-    {
-      "label": "Transact",
-      "action": "tx",
-      "target": `${NEXT_PUBLIC_URL}/api/transact`,      
-      "postUrl": `${NEXT_PUBLIC_URL}/api/tx-success`,
-    },
   ],        
   image: {
     src: `${NEXT_PUBLIC_URL}/ottp-frame-1a.png`,

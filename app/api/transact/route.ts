@@ -28,10 +28,10 @@ async function getResponse(req: NextRequest): Promise<NextResponse | Response> {
       data: {
         recipient: "0x0000000000000000000000000000000000000000",
         expirationTime: 0,
-        revocable: true, // Ensure this matches your contract's requirements
-        refUID: "0x0000000000000000000000000000000000000000000000000000000000000000", // Assuming you need to set this as well
-        data: encodedData, // Ensure this is properly encoded as bytes
-        value: 0, // Include if your contract's attest function uses it in logic  
+        revocable: true,
+        refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
+        data: encodedData,
+        value: 0,
       }
     }
     //console.log(functionData)
