@@ -1,13 +1,12 @@
 import { FrameRequest, FrameTransactionResponse, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
 import { NEXT_PUBLIC_URL, NEXT_PUBLIC_SCHEMAUID } from '../../config';
-import { getTaggedData, onchainAttestation } from '../../utils/utils';
-import { AttestData } from '../../utils/interface';
-import { getData, setData } from '../../utils/redis';
+import { getTaggedData } from '../../utils/utils';
+import { getData } from '../../utils/redis';
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 import { encodeFunctionData, parseEther } from 'viem';
 import easAbi from '../../contracts/easAbi';
-import { base } from 'viem/chains';
+import { base, baseSepolia } from 'viem/chains';
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json();
