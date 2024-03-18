@@ -5,10 +5,11 @@ import { base } from 'viem/chains';
 import type { FrameTransactionResponse } from '@coinbase/onchainkit/frame';
 import easAbi from '../../contracts/easAbi';
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
+import { NEXT_PUBLIC_SCHEMAUID } from '../../config';
 
 async function getResponse(req: NextRequest): Promise<NextResponse | Response> {
     const body: FrameRequest = await req.json();
-    const schemaUID = process.env.SCHEMAUID as string
+    const schemaUID = NEXT_PUBLIC_SCHEMAUID as string
     const easContractAddress = process.env.EASCONTRACTADDRESS as `0x{string}`
     let dataObj: any = {}
     dataObj.toFID = '2095'

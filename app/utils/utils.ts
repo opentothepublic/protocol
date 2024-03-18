@@ -2,11 +2,12 @@ import { EAS, SchemaEncoder, TransactionSigner } from '@ethereum-attestation-ser
 import {AttestData} from './interface'
 import { ethers } from 'ethers'
 import axios from 'axios'
+import { NEXT_PUBLIC_SCHEMAUID } from '../config';
 
 const onchainAttestation = async (attestObj: AttestData) => {
     try {
         const easContractAddress = process.env.EASCONTRACTADDRESS as string
-        const schemaUID = process.env.SCHEMAUID as string
+        const schemaUID = NEXT_PUBLIC_SCHEMAUID as string
         const eas = new EAS(easContractAddress!)
         const provider = new ethers.JsonRpcProvider('https://sepolia.base.org')    
         const signer = new ethers.Wallet(process.env.PVTKEY as string, provider)
@@ -97,5 +98,23 @@ const validateCollabUserInput = (text: string): boolean => {
     return isValidSegments && isValidSeparators;
 };
 
+const getAttestationUid = async (txnId: string): Promise<any> => {
+    try {
+        const resposne = await axios.get(`https://api.basescan.org/api?module=logs&action=getLogs&address=${process.env.EASCONTRACTADDRESS}&apikey=${process.env.BASESCAN_API}`)
+        const txns = await resposne.data
+        const txnResults = txns.result 
+        for (const txn of txnResults) {
+            if (txn.transactionHash === txnId) {
+                //console.log(txn)
+                //console.log(txn.data)
+                return txn.data
+            }
+          }        
+    } catch (e) {
+        console.error(e)
+        return e
+    }
+}
 
-export {onchainAttestation, getFids, validateCollabUserInput, getTaggedData}
+
+export {onchainAttestation, getFids, validateCollabUserInput, getTaggedData, getAttestationUid}

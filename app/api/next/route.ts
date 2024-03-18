@@ -7,7 +7,8 @@ import { createCacheObj, delCache, getData, inCache, setData } from '../../utils
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
   const body: FrameRequest = await req.json();
   let inputText: string = body.untrustedData.inputText
-  let fromFid: string = body.untrustedData.fid.toString()
+  //let fromFid: string = body.untrustedData.fid.toString()
+  let fromFid: number = body.untrustedData.fid
   
   if(validateCollabUserInput(inputText)){
 

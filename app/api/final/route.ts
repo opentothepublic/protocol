@@ -2,13 +2,17 @@ import { FrameRequest, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
 import { NEXT_PUBLIC_URL } from '../../config';
 import { getData, setData } from '../../utils/redis';
+import { getAttestationUid } from '../../utils/utils';
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json();
-    let fromFid = body.untrustedData.fid.toString()
+    let fromFid = body.untrustedData.fid
+    //console.log(body)
     let txnId = body?.untrustedData?.transactionId
     let cachedData = JSON.parse(await getData(fromFid))
-    await setData(fromFid, cachedData.toFids, txnId!)        
+
+    const attestUid = await getAttestationUid(txnId!)
+    setData(fromFid, cachedData.toFids, attestUid!)        
     
     return new NextResponse(
         getFrameHtmlResponse({
@@ -21,8 +25,9 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
                 {
                     "label": "View",
                     "action": "link",
-                    //"target": `https://base-sepolia.easscan.org/attestation/view/${cachedData.attestTxn}`
-                    "target": `https://base-sepolia.easscan.org/attestation/view/${txnId}`
+                    //"target": `https://base-sepolia.easscan.org/attestation/view/${attestUid}`
+                    "target": `https://base.easscan.org/attestation/view/${attestUid}`
+                    //"target": `https://basescan.org//tx/${txnId}`
                 },
                 {
                     "label": "Restart",

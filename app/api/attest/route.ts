@@ -1,6 +1,6 @@
 import { FrameRequest, FrameTransactionResponse, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
-import { NEXT_PUBLIC_URL } from '../../config';
+import { NEXT_PUBLIC_URL, NEXT_PUBLIC_SCHEMAUID } from '../../config';
 import { getTaggedData, onchainAttestation } from '../../utils/utils';
 import { AttestData } from '../../utils/interface';
 import { getData, setData } from '../../utils/redis';
@@ -15,7 +15,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         
         let inputText: string = body.untrustedData.inputText        
         let project: string[] = getTaggedData(inputText)
-        let fromFid = body.untrustedData.fid.toString()
+        let fromFid = body.untrustedData.fid
         let cachedData = JSON.parse(await getData(fromFid))
         
         let data: any = {
@@ -25,19 +25,19 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         }        
         console.log(data)
 
-        const schemaEncoder = new SchemaEncoder("string fromFID,string data")
+        const schemaEncoder = new SchemaEncoder("uint256 fromFID,string data")
         const encodedData = schemaEncoder.encodeData([
-	        { name: "fromFID", value: fromFid, type: "string" },
+	        { name: "fromFID", value: fromFid, type: "uint256" },
 	        { name: "data", value: JSON.stringify(data), type: "string" }	        
         ])
         console.log(encodedData)
 
         const functionData = {
-            schema: process.env.SCHEMAUID as string,
+            schema: NEXT_PUBLIC_SCHEMAUID as string,
             data: {
               recipient: "0x0000000000000000000000000000000000000000",
               expirationTime: 0,
-              revocable: true,
+              revocable: false,
               refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
               data: encodedData,
               value: 0,
