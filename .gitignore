@@ -3,3 +3,4 @@ package-lock.json
 .next/
 .DS_STORE
 .env
+build

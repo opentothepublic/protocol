@@ -5,14 +5,13 @@
     "build": "rm -rf .next && next build",
     "dev": "next dev",
     "format": "prettier --log-level warn --write .",
-    "start": "next start",
-    "test": ""
+    "start": "next start"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@coinbase/onchainkit": "^0.10.1",
+    "@coinbase/onchainkit": "^0.11.0",
     "@ethereum-attestation-service/eas-sdk": "^1.5.0",
     "axios": "^1.6.7",
     "ethers": "^6.11.1",
@@ -23,7 +22,7 @@
     "react-dom": "^18.2.0",
     "viem": "^2.7.1"
   },
-  "devDependencies": {        
+  "devDependencies": {
     "@types/node": "^20.11.8",
     "@types/react": "18.2.48",
     "prettier": "^3.2.4",

@@ -1,12 +1,13 @@
 import { FrameRequest, FrameTransactionResponse, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
-import { NEXT_PUBLIC_URL, NEXT_PUBLIC_SCHEMAUID } from '../../config';
+import { NEXT_PUBLIC_URL, NEXT_PUBLIC_SCHEMAUID, NEXT_PUBLIC_CHAINID } from '../../config';
 import { getTaggedData } from '../../utils/utils';
 import { getData } from '../../utils/redis';
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 import { encodeFunctionData, parseEther } from 'viem';
 import easAbi from '../../contracts/easAbi';
-import { base, baseSepolia } from 'viem/chains';
+import { base } from 'viem/chains';
+
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json();
@@ -30,13 +31,13 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
 	        { name: "data", value: JSON.stringify(data), type: "string" }	        
         ])
         console.log(encodedData)
-
+        
         const functionData = {
-            schema: NEXT_PUBLIC_SCHEMAUID as string,
+            schema: process.env.MAINNET_SCHEMAUID as string,
             data: {
               recipient: "0x0000000000000000000000000000000000000000",
               expirationTime: 0,
-              revocable: false,
+              revocable: true,
               refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
               data: encodedData,
               value: 0,
@@ -49,7 +50,9 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
             args: [functionData],
         })
         //console.log("Data : ", data)
+        
         const txData: FrameTransactionResponse = {
+            //chainId: `eip155:${NEXT_PUBLIC_CHAINID}`,
             chainId: `eip155:${base.id}`, // Remember Base Sepolia might not work on Warpcast yet
             method: 'eth_sendTransaction',
             params: {
