@@ -35,7 +35,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         image: {
           src: `${NEXT_PUBLIC_URL}/ottp-frame-1b.png`,
         },
-        input: {text: 'What did you create @fwg'},                
+        input: {text: 'Describe & tag project e.g. @fwg'},                
         postUrl: `${NEXT_PUBLIC_URL}/api/attest`,          
       })
     )

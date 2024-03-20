@@ -8,3 +8,4 @@ export const NEXT_PUBLIC_SCHEMAUID = process.env.NODE_ENV === 'development' ? pr
 export const NEXT_PUBLIC_CHAINID = process.env.NODE_ENV === 'development' ? baseSepolia.id : base.id
 export const NEXT_PUBLIC_BASESCAN_URL = process.env.NODE_ENV === 'development' ? 'https://base-sepolia.easscan.org/attestation/view/' : 'https://base.easscan.org/attestation/view/'
 export const NEXT_PUBLIC_BASESCAN_API_ENDPOINT = process.env.NODE_ENV === 'development' ? 'https://api-sepolia.basescan.org/api' : 	'https://api.basescan.org/api'
+export const NEXT_PUBLIC_OTTP_URL = 'https://opentothepublic.org/'
