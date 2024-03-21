@@ -5,3 +5,4 @@ package-lock.json
 .env
 build
 .dockerignore
+ottp-attest-verify

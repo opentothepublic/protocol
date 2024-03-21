@@ -19,11 +19,11 @@ const frameMetadata = getFrameMetadata({
 })
 
 export const metadata: Metadata = {
-  title: 'OTTP: Open To The Public',
-  description: 'Collaboration Graph',
+  title: 'Open to the Public',
+  description: 'The open collaboration protocol',
   openGraph: {
-    title: 'OTTP: Open To The Public',
-    description: 'Collaboration Graph',
+    title: 'Open to the Public',
+    description: 'The open collaboration protocol',
     images: [`${NEXT_PUBLIC_URL}/ottp-frame-1a.png`],
   },
   other: {

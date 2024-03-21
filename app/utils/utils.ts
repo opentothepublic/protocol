@@ -2,9 +2,15 @@ import { EAS, SchemaEncoder, TransactionSigner } from '@ethereum-attestation-ser
 import {AttestData} from './interface'
 import { ethers } from 'ethers'
 import axios from 'axios'
-import { NEXT_PUBLIC_SCHEMAUID, NEXT_PUBLIC_BASESCAN_API_ENDPOINT } from '../config';
+import { NEXT_PUBLIC_SCHEMAUID, NEXT_PUBLIC_URL } from '../config';
 import { createPublicClient, http } from 'viem'
 import { base } from 'viem/chains'
+import { setVData } from './redis';
+import { join } from 'path';
+import satori from 'satori';
+import { ReactNode } from 'react';
+import sharp from 'sharp';
+import * as fs from "fs"
 
 
 const onchainAttestation = async (attestObj: AttestData) => {
@@ -35,6 +41,128 @@ const onchainAttestation = async (attestObj: AttestData) => {
     } catch (err) {
         console.log(err)
     }    
+}
+
+const getHtmlElement = async(fromFid: string, toFids: string, text: string) => {    
+    try {
+        const { html } = await import('satori-html')
+        const htmlElement = html`<style>
+        .confirmation-card {
+              background: white;
+              border-radius: 8px;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+              padding: 40px;
+              margin-left: 15px; /* Maintain left margin */
+              width: 600px; /* Specify width */
+              height: 400px; /* Specify height */
+              text-align: left;
+              display: flex;
+              flex-direction: column;
+          }
+          
+          .protocol {
+              color: #007bff; /* Blue color for protocol, username, and mention */
+              font-size: 24px; /* Matching protocol for consistency */
+              margin-top: 10px; /*
+              margin-bottom: 20px; /* Space after protocol text */
+          }
+          
+          .username, .mention {
+              color: #007bff; /* Blue color for protocol, username, and mention */
+              font-size: 16px; /* Matching protocol for consistency */
+              margin-top: 10px; /* Space after username
+              margin-bottom: 2em; /* Space after protocol text */
+          }
+      
+          .attestation {
+              font-size: 16px;
+              line-height: 1.5;
+              display: flex;
+              flex-direction: column;
+          }
+          
+          .attestation-line, .attestation-text {
+              display: flex; /* Use flex to keep inline nature */
+              flex-wrap: wrap; /* Allow contents to wrap like inline elements */
+              margin-top: 20px; /* Space after username
+              margin-bottom: 0.75em; /* Space after each attestation line */
+              color: #000; /* Default text color */
+          }
+          
+          .confirmation-notice {
+              color: #888;
+              font-size: 14px;
+              margin-top: 2em; /* Space before the confirmation notice */
+          }
+          
+          @media screen and (max-width: 768px) {
+              .confirmation-card {
+                  width: 80%; /* Adjust card size for smaller screens */
+                  margin-left: 20px; /* Adjust margin for smaller screens */
+                  padding: 20px;
+              }
+            }
+      </style>
+        
+        <div class="confirmation-card">
+          <div class="protocol">ottp://</div>
+          <div class="attestation">
+              <div class="attestation-line">
+                  Submitted by: <div class="username">${fromFid}</div>
+              </div>
+              <div class="attestation-line">
+                  Collaborator(s): <div class="mention">${toFids}</div>
+              </div>
+              <div class="attestation-text">Attestation: ${text}</div>
+          </div>
+          <div class="confirmation-notice">By attesting, you are confirming onchain.</div>
+      </div>`
+        
+        return htmlElement
+    } catch (e) {
+        console.error(e)
+    }  
+}
+
+const toPng = async (fromFid: string, toFids: string, text: string) => {
+    const fontPath = join(process.cwd(), 'IBMPlexMono-Regular.ttf')
+    let fontData = fs.readFileSync(fontPath)
+    const svg = await satori(
+        await getHtmlElement(fromFid, toFids, text) as ReactNode,
+        {
+            width: 600, height: 400,
+            fonts: [{
+                data: fontData,
+                name: 'IBMPlexMono',
+                style: 'normal',
+                weight: 400
+            }]
+        })
+    
+    // Convert SVG to PNG using Sharp
+    const pngBuffer = await sharp(Buffer.from(svg))
+        .resize(600,400, {
+            fit: sharp.fit.fill,
+        })
+        .toFormat('png')
+        .toBuffer();    
+    const imageData = 'data:image/png;base64,'+ pngBuffer.toString('base64')
+    console.log(imageData)
+    return imageData
+}
+
+
+const getFnameFromFid = async (fid: string): Promise<string> => { 
+    if (!fid) 
+        throw new Error ('Fid cannot be empty')
+    try {
+        const response = await axios.get(`https://fnames.farcaster.xyz/transfers?fid=${fid}`)
+        
+        //console.log(response.data)        
+        return response.data?.transfer?.username
+    } catch (err) {
+        throw(err)
+    }
 }
 
 const getFidFromFname = async (fname: string): Promise<string> => { 
@@ -126,7 +254,7 @@ const publicClient = createPublicClient({
 const getNewAttestId = async (txnId: string): Promise<any> => {
     try {        
         const hash = txnId as `0x${string}`
-        const transactionReceipt = await publicClient.getTransactionReceipt({ hash })
+        const transactionReceipt = await publicClient.waitForTransactionReceipt({ hash })
         
         console.log(transactionReceipt)
         console.log(transactionReceipt.logs[0].data)
@@ -138,7 +266,23 @@ const getNewAttestId = async (txnId: string): Promise<any> => {
     }
 }
 
-const cast = async () => {
+const getFnames = async (toFids: string): Promise<string> => {
+    const fidArray: string[] = toFids.split(',')    
+    const fnamePromises: Promise<string>[] = fidArray.map(fid => getFnameFromFid(fid));
+    const fnameArray: string[] = await Promise.all(fnamePromises);
+    const prefixedFnames: string = fnameArray.map(name => '@' + name).join(' ')
+    return prefixedFnames
+}
+
+const cast = async (fromFid: string, attestData: string) => {
+    
+    const fromFname = await getFnameFromFid(fromFid)
+    const toFnames = await getFnames(JSON.parse(attestData).toFids)
+    const vid = `v${Date.now()}`
+    setVData(fromFname, toFnames, vid, attestData)
+    
+    let text: string = `@${fromFname}  ${toFnames} Your collaboration is on chain.\n Verify the attestation in the frame.\n\n (Skip if you're the submitter.)`
+    console.log(text)
     const options = {
         method: 'POST',
         url: 'https://api.neynar.com/v2/farcaster/cast',
@@ -149,11 +293,12 @@ const cast = async () => {
         },
         data: {
           signer_uuid: process.env.SIGNER_UUID,
-          text: 'GM! Watchout this space for @ottp; the BASED collaboration protocol'
+          text: text,
+          embeds: [{url: `${NEXT_PUBLIC_URL}/api?v=${vid}`}]
         }
-      };
+    };
       
-      axios
+    axios
         .request(options)
         .then(function (response) {
           console.log(response.data);
@@ -163,4 +308,4 @@ const cast = async () => {
         });
 }
 
-export {onchainAttestation, getFids, validateCollabUserInput, getTaggedData, getNewAttestId}
+export {onchainAttestation, getFids, validateCollabUserInput, getTaggedData, getNewAttestId, cast, toPng}

@@ -1,8 +1,6 @@
-import { FrameRequest, FrameTransactionResponse, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
+import { FrameRequest, FrameTransactionResponse } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
-import { NEXT_PUBLIC_URL, NEXT_PUBLIC_SCHEMAUID, NEXT_PUBLIC_CHAINID } from '../../config';
-import { getTaggedData } from '../../utils/utils';
-import { getData, setData } from '../../utils/redis';
+import { createCacheObj, delCache, getData, getVData, inCache, setData } from '../../utils/redis';
 import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
 import { encodeFunctionData, parseEther } from 'viem';
 import easAbi from '../../contracts/easAbi';
@@ -10,18 +8,26 @@ import { base } from 'viem/chains';
 
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
-    const body: FrameRequest = await req.json();
-    if (body.untrustedData.buttonIndex !== 1) {
+    const body: FrameRequest = await req.json()
+    console.log(body)
+    let fromFid: number = body.untrustedData.fid
+
+      const vid = req.nextUrl.searchParams.get('v')
+      const vData = JSON.parse(await getVData(vid!))
+      console.log(vData);
+      await inCache(fromFid) ? await delCache(fromFid) : await createCacheObj(fromFid)
+      await setData(fromFid, vData.toFids, '', vData.project, vData.text)
+      console.log(await getData(fromFid))              
+    
+        let inputText: string = 'Attestation verified'
+        let project: string[] = vData.project
         
-        let inputText: string = body.untrustedData.inputText        
-        let project: string[] = getTaggedData(inputText)
-        let fromFid = body.untrustedData.fid
-        let cachedData = JSON.parse(await getData(fromFid))
-        setData(fromFid, cachedData.toFids, '', project.toString(), inputText)        
+        //let cachedData = JSON.parse(await getData(fromFid))
+        
         let data: any = {
-            toFID: cachedData.toFids,
+            toFID: vData.toFids,
             message: inputText,
-            project: project        
+            project: project      
         }        
         console.log(data)
 
@@ -68,40 +74,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         //await setData(fromFid, cachedData.toFids, txnId!)
         //console.log(await getData(fromFid))
         return NextResponse.json(txData);
-        /*return new NextResponse(
-            getFrameHtmlResponse({
-                buttons: [
-                    {
-                        "label": "Next",
-                        "action": "post",                        
-                    },                    
-                ],                
-                image: {
-                    src: `${NEXT_PUBLIC_URL}/ottp-frame-1c.gif`,
-                },
-                ogTitle: "OTTP: Shoutout!",    
-                postUrl: `${NEXT_PUBLIC_URL}/api/final`,            
-            })
-        )*/
-    } else {
-        return new NextResponse(
-            getFrameHtmlResponse({
-                buttons: [
-                    {
-                        "label": "Next",
-                        "action": "post",                
-                    }
-                ],
-                image: {
-                    src: `${NEXT_PUBLIC_URL}/ottp-frame-1a.png`,
-                },
-                input: {text: 'Tag collaborators e.g. @df @v'},        
-                ogTitle: "OTTP: Shoutout!",
-                postUrl: `${NEXT_PUBLIC_URL}/api/next`,                   
-            })
-        )
     }
-}
 
 export const POST = async(req: NextRequest): Promise<Response> => {
   return getResponse(req);

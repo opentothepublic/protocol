@@ -1,8 +1,8 @@
 import { FrameRequest, getFrameHtmlResponse } from '@coinbase/onchainkit/frame';
 import { NextRequest, NextResponse } from 'next/server';
 import { NEXT_PUBLIC_URL } from '../../config';
-import { getData, setData } from '../../utils/redis';
-import { getNewAttestId, cast } from '../../utils/utils';
+import { getData, setData } from '../../utils/redis'
+import { getNewAttestId } from '../../utils/utils';
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json();
@@ -14,10 +14,8 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
 
     const attestUid = await getNewAttestId(txnId!)
     console.log(attestUid)
-    setData(fromFid, cachedData.toFids, attestUid!,cachedData.project, cachedData.message)        
+    setData(fromFid, cachedData.toFids, attestUid!, cachedData.project, cachedData.message)        
     
-    cast(fromFid.toString(), await getData(fromFid))
-
     return new NextResponse(
         getFrameHtmlResponse({
             buttons: [                
@@ -28,15 +26,15 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
                     //"target": `https://basescan.org//tx/${txnId}`
                 },
                 {
-                    "label": "Restart",
-                    "action": "post"                        
+                    "label": "Create",
+                    "action": "link",
+                    "target": "https://warpcast.com/ottp/0xfab58542"                   
                 }
             ],                
             image: {
-                src: `${NEXT_PUBLIC_URL}/ottp-frame-1d.png`,
+                src: `${NEXT_PUBLIC_URL}/ottp-frame-1b-3.png`,
             },
-            ogTitle: "OTTP: Shoutout!",    
-            postUrl: `${NEXT_PUBLIC_URL}/api/restart`,           
+            ogTitle: "Open to the Public",    
         })
     )
 }
