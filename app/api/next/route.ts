@@ -10,10 +10,10 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
   let fromFid: number = body.untrustedData.fid
   
   if(validateCollabUserInput(inputText)){
-
     const fidsPromise = getFids(inputText)
     await inCache(fromFid) ? await delCache(fromFid) : await createCacheObj(fromFid)
     const fids = await fidsPromise      
+    
     await setData(fromFid, fids.toString(), '', '', '')
     console.log(await getData(fromFid))              
         
