@@ -16,7 +16,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     console.log(attestUid)
     setData(fromFid, cachedData.toFids, attestUid!,cachedData.project, cachedData.message)        
     
-    cast(fromFid.toString(), await getData(fromFid))
+    cast(fromFid, await getData(fromFid))
 
     return new NextResponse(
         getFrameHtmlResponse({

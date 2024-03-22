@@ -9,12 +9,12 @@ import { base } from 'viem/chains';
 
 const getResponse = async (req: NextRequest): Promise<NextResponse> => {
     const body: FrameRequest = await req.json()
-    console.log(body)
+    //console.log(body)
     let fromFid: number = body.untrustedData.fid
 
       const vid = req.nextUrl.searchParams.get('v')
       const vData = JSON.parse(await getVData(vid!))
-      console.log(vData);
+      //console.log(vData);
       await inCache(fromFid) ? await delCache(fromFid) : await createCacheObj(fromFid)
       await setData(fromFid, vData.toFids, '', vData.project, vData.text)
       console.log(await getData(fromFid))              

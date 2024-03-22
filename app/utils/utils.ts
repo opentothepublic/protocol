@@ -50,9 +50,9 @@ const getHtmlElement = async(fromFid: string, toFids: string, text: string) => {
         .confirmation-card {
               background: white;
               border-radius: 8px;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+              /*box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);*/
               padding: 40px;
-              margin-left: 15px; /* Maintain left margin */
+              margin-left: 10px; /* Maintain left margin */
               width: 600px; /* Specify width */
               height: 400px; /* Specify height */
               text-align: left;
@@ -61,16 +61,18 @@ const getHtmlElement = async(fromFid: string, toFids: string, text: string) => {
           }
           
           .protocol {
-              color: #007bff; /* Blue color for protocol, username, and mention */
+              color: #0000FF; /* Blue color for protocol, username, and mention */
               font-size: 24px; /* Matching protocol for consistency */
+              font-weight: 500;
               margin-top: 10px; /*
               margin-bottom: 20px; /* Space after protocol text */
           }
           
           .username, .mention {
-              color: #007bff; /* Blue color for protocol, username, and mention */
+              color: #0000FF; /* Blue color for protocol, username, and mention */
               font-size: 16px; /* Matching protocol for consistency */
-              margin-top: 10px; /* Space after username
+              margin-left: 4px;
+              margin-top: 1px; /* Space after username
               margin-bottom: 2em; /* Space after protocol text */
           }
       
@@ -81,18 +83,34 @@ const getHtmlElement = async(fromFid: string, toFids: string, text: string) => {
               flex-direction: column;
           }
           
-          .attestation-line, .attestation-text {
+          .submitted-line {
               display: flex; /* Use flex to keep inline nature */
               flex-wrap: wrap; /* Allow contents to wrap like inline elements */
               margin-top: 20px; /* Space after username
               margin-bottom: 0.75em; /* Space after each attestation line */
               color: #000; /* Default text color */
           }
+    
+          .collab-line {
+              display: flex; /* Use flex to keep inline nature */
+              flex-wrap: wrap; /* Allow contents to wrap like inline elements */
+              margin-top: 10px; /* Space after username
+              margin-bottom: 0.75em; /* Space after each attestation line */
+              color: #000; /* Default text color */
+          }
           
+          .attestation-text {
+              display: flex; /* Use flex to keep inline nature */
+              flex-wrap: wrap; /* Allow contents to wrap like inline elements */
+              margin-top: 10px; /* Space after username
+              margin-bottom: 0.75em; /* Space after each attestation line */
+              color: #000; /* Default text color */
+          }
+    
           .confirmation-notice {
-              color: #888;
+              color: #000;
               font-size: 14px;
-              margin-top: 2em; /* Space before the confirmation notice */
+              margin-top: 4em; /* Space before the confirmation notice */
           }
           
           @media screen and (max-width: 768px) {
@@ -107,10 +125,10 @@ const getHtmlElement = async(fromFid: string, toFids: string, text: string) => {
         <div class="confirmation-card">
           <div class="protocol">ottp://</div>
           <div class="attestation">
-              <div class="attestation-line">
+              <div class="submitted-line">
                   Submitted by: <div class="username">${fromFid}</div>
               </div>
-              <div class="attestation-line">
+              <div class="collab-line">
                   Collaborator(s): <div class="mention">${toFids}</div>
               </div>
               <div class="attestation-text">Attestation: ${text}</div>
@@ -147,19 +165,18 @@ const toPng = async (fromFid: string, toFids: string, text: string) => {
         .toFormat('png')
         .toBuffer();    
     const imageData = 'data:image/png;base64,'+ pngBuffer.toString('base64')
-    console.log(imageData)
+    //console.log(imageData)
     return imageData
 }
 
 
-const getFnameFromFid = async (fid: string): Promise<string> => { 
+const getFnameFromFid = async (fid: number): Promise<string> => { 
     if (!fid) 
         throw new Error ('Fid cannot be empty')
     try {
         const response = await axios.get(`https://fnames.farcaster.xyz/transfers?fid=${fid}`)
-        
-        //console.log(response.data)        
-        return response.data?.transfer?.username
+        console.log(response.data)        
+        return response.data?.transfers[0].username
     } catch (err) {
         throw(err)
     }
@@ -169,9 +186,9 @@ const getFidFromFname = async (fname: string): Promise<string> => {
     if (!fname) 
         throw new Error ('Fname cannot be empty')
     try {
-        const response = await axios.get(`https://fnames.farcaster.xyz/transfers/current?name=${fname}`)
+        const response = await axios.get(`https://fnames.farcaster.xyz/transfers?name=${fname}`)
         //console.log(response.data)        
-        return response.data?.transfer?.id
+        return response.data?.transfers[0].id
     } catch (err) {
         throw(err)
     }
@@ -268,21 +285,24 @@ const getNewAttestId = async (txnId: string): Promise<any> => {
 
 const getFnames = async (toFids: string): Promise<string> => {
     const fidArray: string[] = toFids.split(',')    
-    const fnamePromises: Promise<string>[] = fidArray.map(fid => getFnameFromFid(fid));
+    const fnamePromises: Promise<string>[] = fidArray.map(fid => getFnameFromFid(Number(fid)));
     const fnameArray: string[] = await Promise.all(fnamePromises);
     const prefixedFnames: string = fnameArray.map(name => '@' + name).join(' ')
     return prefixedFnames
 }
 
-const cast = async (fromFid: string, attestData: string) => {
-    
+const cast = async (fromFid: number, attestData: string) => {
+    //console.log('From FID: ',fromFid)
+    //console.log('Attest Data: ',attestData)
     const fromFname = await getFnameFromFid(fromFid)
     const toFnames = await getFnames(JSON.parse(attestData).toFids)
+    //console.log('To Fnames: ', toFnames)
     const vid = `v${Date.now()}`
     setVData(fromFname, toFnames, vid, attestData)
     
-    let text: string = `@${fromFname}  ${toFnames} Your collaboration is on chain.\n Verify the attestation in the frame.\n\n (Skip if you're the submitter.)`
-    console.log(text)
+    let text: string = `@${fromFname} ${toFnames} Your collaboration is onchain. Verify the attestation.\n\n (Skip if you submitted.)`
+    
+    //console.log(text)
     const options = {
         method: 'POST',
         url: 'https://api.neynar.com/v2/farcaster/cast',
