@@ -50,8 +50,7 @@ const getHtmlElement = async(fromFid: string, toFids: string, text: string) => {
         .confirmation-card {
               background: white;
               border-radius: 8px;
-              /*box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);*/
-              padding: 40px;
+              /*box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);*/          
               margin-left: 10px; /* Maintain left margin */
               width: 600px; /* Specify width */
               height: 400px; /* Specify height */
@@ -174,9 +173,16 @@ const getFnameFromFid = async (fid: number): Promise<string> => {
     if (!fid) 
         throw new Error ('Fid cannot be empty')
     try {
-        const response = await axios.get(`https://fnames.farcaster.xyz/transfers?fid=${fid}`)
-        console.log(response.data)        
-        return response.data?.transfers[0].username
+        //const response = await axios.get(`https://fnames.farcaster.xyz/transfers?fid=${fid}`)
+        const response = await axios.get(`https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}&viewer_fid=316300`, {
+            headers: {
+                accept: 'application/json',
+                api_key: process.env.NEYNAR_API_KEY,                
+            }
+        })
+        //console.log(response.data)        
+        //return response.data?.transfers[0].username
+        return response.data?.users[0].username
     } catch (err) {
         throw(err)
     }
@@ -186,9 +192,16 @@ const getFidFromFname = async (fname: string): Promise<string> => {
     if (!fname) 
         throw new Error ('Fname cannot be empty')
     try {
-        const response = await axios.get(`https://fnames.farcaster.xyz/transfers?name=${fname}`)
+        //const response = await axios.get(`https://fnames.farcaster.xyz/transfers?name=${fname}`)
+        const response = await axios.get(`https://api.neynar.com/v2/farcaster/user/search?q=${fname}&viewer_fid=316300`, {
+            headers: {
+                accept: 'application/json',
+                api_key: process.env.NEYNAR_API_KEY,                
+            }
+        })
         //console.log(response.data)        
-        return response.data?.transfers[0].id
+        //return response.data?.transfers[0].id
+        return response.data?.result.users[0].fid
     } catch (err) {
         throw(err)
     }

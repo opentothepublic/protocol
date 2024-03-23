@@ -59,7 +59,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
                 abi: [],
                 data: transactiondata,
                 to: process.env.EASCONTRACTADDRESS  as `0x{string}`,
-                value: parseEther('0.00004').toString(), // 0.00004 ETH
+                value: parseEther('0').toString(),
             },
         }
         console.log("txData : ", txData)
