@@ -27,7 +27,7 @@ const getResponse = async(req: NextRequest): Promise<NextResponse> => {
             ],
             image: imageUrl,                    
             ogTitle: 'Open to the Public',
-            ogDescription: 'The open collaboration protocol',
+            ogDescription: 'The open collaboration protocol'   
         }),
     );
 }
