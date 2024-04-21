@@ -59,7 +59,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         
         const txData: FrameTransactionResponse = {
             //chainId: `eip155:${NEXT_PUBLIC_CHAINID}`,
-            chainId: `eip155:${base.id}`, // Remember Base Sepolia might not work on Warpcast yet
+            chainId: `eip155:${base.id}`, 
             method: 'eth_sendTransaction',
             params: {
                 abi: [],
@@ -69,10 +69,6 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
             },
         }
         console.log("txData : ", txData)
-    
-        //let txnId = await onchainAttestation(attestDataObj)
-        //await setData(fromFid, cachedData.toFids, txnId!)
-        //console.log(await getData(fromFid))
         return NextResponse.json(txData);
     }
 

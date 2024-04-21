@@ -1,6 +1,3 @@
-import { EAS, SchemaEncoder, TransactionSigner } from '@ethereum-attestation-service/eas-sdk';
-import {AttestData} from './interface'
-import { ethers } from 'ethers'
 import axios from 'axios'
 import { NEXT_PUBLIC_SCHEMAUID, NEXT_PUBLIC_URL } from '../config';
 import { createPublicClient, http } from 'viem'
@@ -12,36 +9,6 @@ import { ReactNode } from 'react';
 import sharp from 'sharp';
 import * as fs from "fs"
 
-
-const onchainAttestation = async (attestObj: AttestData) => {
-    try {
-        const easContractAddress = process.env.EASCONTRACTADDRESS as string
-        const schemaUID = NEXT_PUBLIC_SCHEMAUID as string
-        const eas = new EAS(easContractAddress!)
-        const provider = new ethers.JsonRpcProvider('https://sepolia.base.org')    
-        const signer = new ethers.Wallet(process.env.PVTKEY as string, provider)
-        eas.connect(signer as unknown as TransactionSigner)
-        
-        const schemaEncoder = new SchemaEncoder("string fromFID,string data")
-        const encodedData = schemaEncoder.encodeData([
-	        { name: "fromFID", value: attestObj.fromFID, type: "string" },
-	        { name: "data", value: attestObj.data, type: "string" }	        
-        ])
-
-        const tx = await eas.attest({
-            schema: schemaUID,
-            data: {
-                recipient: "0x0000000000000000000000000000000000000000",            
-                revocable: true, // Be aware that if your schema is not revocable, this MUST be false
-                data: encodedData,
-            },
-        });
-        const newAttestationUID = await tx.wait()        
-        return newAttestationUID
-    } catch (err) {
-        console.log(err)
-    }    
-}
 
 const getHtmlElement = async(fromFid: string, toFids: string, text: string) => {    
     try {
@@ -259,23 +226,6 @@ const validateCollabUserInput = (text: string): boolean => {
     return isValidSegments && isValidSeparators;
 };
 
-const getAttestationUid = async (txnId: string): Promise<any> => {
-    try {
-        const resposne = await axios.get(`https://api.basescan.org/api?module=logs&action=getLogs&address=${process.env.EASCONTRACTADDRESS}&apikey=${process.env.BASESCAN_API}`)
-        const txns = await resposne.data
-        const txnResults = txns.result 
-        for (const txn of txnResults) {
-            if (txn.transactionHash === txnId) {
-                console.log(txn)
-                console.log(txn.data)
-                return txn.data
-            }
-          }        
-    } catch (e) {
-        console.error(e)
-        return e
-    }
-}
 const publicClient = createPublicClient({
     chain: base,
     transport: http()
@@ -341,4 +291,86 @@ const cast = async (fromFid: number, attestData: string) => {
         });
 }
 
-export {onchainAttestation, getFids, validateCollabUserInput, getTaggedData, getNewAttestId, cast, toPng}
+const getOid = async (txnHash: `0x{string}`) => {
+    try {
+        const logs = await publicClient.getTransactionReceipt({
+            hash : txnHash
+        })
+        let oidHex = logs.logs[1]?.topics[1] 
+        if (oidHex){            
+            console.log(oidHex)            
+            return parseInt(oidHex as string, 16)
+        } else return null
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+const getOttpIdHtmlElement = async(ottpId: number) => {    
+    try {
+        const { html } = await import('satori-html')
+        const htmlElement = html`<style>
+        .container {
+            position: relative;
+            margin: 0;            
+            width: 600px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            padding: 38px 50px 50px 50px;
+            box-sizing: border-box;
+            position: relative;
+            background-color: #fff;
+            background-image: url(../public/ottp-frame-1a.png);
+        }
+        .text-content {
+            position: absolute;
+            top: 35%;
+            left: 40%;
+            transform: translateX(-20%);
+            color: black; /* Text color, change as needed */
+            text-align: center; /* Center the text horizontally */
+            font-size: 72px; /* Set the size of the font */
+        }
+    </style>
+    
+    <div class="container">
+        <div class="text-content">        
+            <p>OTTP ${ottpId}</p>
+        </div>
+    </div>`
+        
+        return htmlElement
+    } catch (e) {
+        console.error(e)
+    }  
+}
+
+const toOttpIdPng = async (ottpId: number) => {
+    const fontPath = join(process.cwd(), 'IBMPlexMono-Regular.ttf')
+    let fontData = fs.readFileSync(fontPath)
+    const svg = await satori(
+        await getOttpIdHtmlElement(ottpId) as ReactNode,
+        {
+            width: 600, height: 400,
+            fonts: [{
+                data: fontData,
+                name: 'IBMPlexMono',
+                style: 'normal',
+                weight: 400
+            }]
+        })
+    
+    // Convert SVG to PNG using Sharp
+    const pngBuffer = await sharp(Buffer.from(svg))
+        .resize(600,400, {
+            fit: sharp.fit.fill,
+        })
+        .toFormat('png')
+        .toBuffer();    
+    const imageData = 'data:image/png;base64,'+ pngBuffer.toString('base64')
+    //console.log(imageData)
+    return imageData
+}
+
+export {getFids, validateCollabUserInput, getTaggedData, getNewAttestId, cast, toPng, getOid, toOttpIdPng}
