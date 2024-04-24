@@ -231,18 +231,27 @@ const publicClient = createPublicClient({
     transport: http()
 })
 
-const getNewAttestId = async (txnId: string): Promise<any> => {
+const getAttestandOttpId = async (txnId: string): Promise<{attestUid: string; ottpId: number|null} | any > => {
     try {        
         const hash = txnId as `0x${string}`
         const transactionReceipt = await publicClient.waitForTransactionReceipt({ hash })
         
-        console.log(transactionReceipt)
-        console.log(transactionReceipt.logs[0].data)
-        return transactionReceipt.logs[0].data
+        //console.log(transactionReceipt)
+        let attestUid = transactionReceipt.logs[0]?.data
+        console.log(attestUid)
 
+        if (transactionReceipt.logs[1]) {
+            let oidHex = transactionReceipt.logs[1].topics[1] 
+            console.log('OTTP Hex: ', oidHex)    
+            return {attestUid, ottpId: parseInt(oidHex as string, 16)}
+        }
+        else {
+            return {attestUid, ottpId: null}
+        }
     } catch (e) {
         console.error(e)
-        return e
+        //return e
+        return new Error('Failed to retrieve attestUid or OttpId')
     }
 }
 
@@ -289,21 +298,6 @@ const cast = async (fromFid: number, attestData: string) => {
         .catch(function (error) {
           console.error(error);
         });
-}
-
-const getOid = async (txnHash: `0x{string}`) => {
-    try {
-        const logs = await publicClient.getTransactionReceipt({
-            hash : txnHash
-        })
-        let oidHex = logs.logs[1]?.topics[1] 
-        if (oidHex){            
-            console.log(oidHex)            
-            return parseInt(oidHex as string, 16)
-        } else return null
-    } catch (err) {
-        console.log(err)
-    }
 }
 
 const getOttpIdHtmlElement = async(ottpId: number) => {    
@@ -373,4 +367,4 @@ const toOttpIdPng = async (ottpId: number) => {
     return imageData
 }
 
-export {getFids, validateCollabUserInput, getTaggedData, getNewAttestId, cast, toPng, getOid, toOttpIdPng}
+export {getFids, validateCollabUserInput, getTaggedData, getAttestandOttpId, cast, toPng, toOttpIdPng}
