@@ -13,7 +13,7 @@ Other Resources:
 WIP
 
 ## Get Involved
-If you're interested in contributing to this open-source project, please see CONTRIBUTING.
+If you're interested in contributing to this open-source project, please see [CONTRIBUTING](https://github.com/opentothepublic/protocol/blob/main/CONTRIBUTING.md).
 
 
 
