@@ -11,7 +11,7 @@ We welcome all contributors.
 
 If you want to learn more about the project before contributing, please visit:
 - [Website](https://opentothepublic.org)
-- [Documenation](https://ottp.gitbook.io/docs)
+- [Documenation](https://docs.opentothepublic.org)
 - Community Channel on [Warpcast](https://warpcast.com/~/channel/ottp) — Share ideas for the protocol or apps/clients you want to see built.
 
 If you're interested in contributing to the project, please complete the form on the [website](https://opentothepublic.org). We use the information to:
@@ -24,6 +24,7 @@ If you're interested in contributing to the project, please complete the form on
 All experience levels and skills are valued. You can help:
 - Improve documentation on GitHub and GitBook.
 - Improve [contracts](https://github.com/opentothepublic/contracts).
+- Improve [SDK](https://github.com/opentothepublic/ottp-sdk).
 - Review code.
 - Onboard developers to build or integrate with OTTP.
 
