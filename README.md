@@ -7,7 +7,7 @@ This is the main protocol repository with technical specs for implementation.
 
 Other Resources:
 - [Website](https://opentothepublic.org)
-- [Documentation](https://ottp.gitbook.io/docs)
+- [Documentation](https://docs.opentothepublic.org)
 
 ## Technical Specs
 WIP
