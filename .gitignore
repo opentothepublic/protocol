@@ -1,0 +1,8 @@
+node_modules
+package-lock.json
+.next/
+.DS_STORE
+.env
+build
+.dockerignore
+ottp-attest-verify
