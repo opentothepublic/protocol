@@ -7,13 +7,13 @@ This is the main protocol repository with technical specs for implementation.
 
 Other Resources:
 - [Website](https://opentothepublic.org)
-- [Documentation](https://ottp.gitbook.io/docs)
+- [Documentation](https://docs.opentothepublic.org)
 
 ## Technical Specs
 WIP
 
 ## Get Involved
-If you're interested in contributing to this open-source project, please see CONTRIBUTING.
+If you're interested in contributing to this open-source project, please see [CONTRIBUTING](https://github.com/opentothepublic/protocol/blob/main/CONTRIBUTING.md).
 
 
 
