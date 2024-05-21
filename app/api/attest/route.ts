@@ -53,7 +53,7 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         
         const txData: FrameTransactionResponse = {
             //chainId: `eip155:${NEXT_PUBLIC_CHAINID}`,
-            chainId: `eip155:${base.id}`, // Remember Base Sepolia might not work on Warpcast yet
+            chainId: `eip155:${base.id}`,
             method: 'eth_sendTransaction',
             params: {
                 abi: [],
@@ -64,25 +64,8 @@ const getResponse = async (req: NextRequest): Promise<NextResponse> => {
         }
         console.log("txData : ", txData)
     
-        //let txnId = await onchainAttestation(attestDataObj)
-        //await setData(fromFid, cachedData.toFids, txnId!)
-        //console.log(await getData(fromFid))
         return NextResponse.json(txData);
-        /*return new NextResponse(
-            getFrameHtmlResponse({
-                buttons: [
-                    {
-                        "label": "Next",
-                        "action": "post",                        
-                    },                    
-                ],                
-                image: {
-                    src: `${NEXT_PUBLIC_URL}/ottp-frame-1c.gif`,
-                },
-                ogTitle: "OTTP: Shoutout!",    
-                postUrl: `${NEXT_PUBLIC_URL}/api/final`,            
-            })
-        )*/
+    
     } else {
         return new NextResponse(
             getFrameHtmlResponse({

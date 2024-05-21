@@ -11,7 +11,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@coinbase/onchainkit": "^0.11.0",
+    "@coinbase/onchainkit": "^0.13.0",
     "@ethereum-attestation-service/eas-sdk": "^1.5.0",
     "axios": "^1.6.7",
     "ethers": "^6.11.1",
