@@ -28,5 +28,11 @@ All experience levels and skills are valued. You can help:
 - Review code.
 - Onboard developers to build or integrate with OTTP.
 
-
 Contributors and contributions are recognized and attested to onchain.
+
+## Repos
+- [/protocol](https://github.com/opentothepublic/protocol) — main repository with technical specs for the protocol
+- [/contracts](https://github.com/opentothepublic/contracts) — implementation of smart contracts
+- [/ottp-sdk](https://github.com/opentothepublic/ottp-sdk) — official SDK for OTTP protocol
+- [/ottp-web-client](https://github.com/opentothepublic/ottp-web-client) — open web client on OTTP
+- [/ottp-farcaster](https://github.com/opentothepublic/ottp-farcaster) — OTTP integrations with Farcaster
